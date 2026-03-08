@@ -13,6 +13,7 @@
   --square-size:60px;
 }
 
+/* RESET Y ESTILOS GENERALES */
 *{box-sizing:border-box;}
 html,body{
   margin:0;
@@ -177,23 +178,32 @@ button{
   line-height:25px;
   text-align:center;
 }
-
 .loopVideo{
   position:absolute;
   top:5px;
   left:5px;
-  background:#222;
-  color:#fff;
-  font-weight:bold;
-  font-size:16px;
+  background:#22222200;
   border:none;
   border-radius:50%;
-  width:25px;
-  height:25px;
+  width:30px;
+  height:30px;
   cursor:pointer;
-  display:none;
-  line-height:25px;
-  text-align:center;
+  display:none; /* Oculto inicialmente */
+  padding:2px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition:all 0.2s ease;
+}
+.loopVideo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+/* Estado activo del loop */
+.loopVideo.active{
+  background:#444;
+  box-shadow:0 0 8px #1e88e5;
 }
 
 /* DESPLEGABLE */
@@ -288,7 +298,7 @@ button{
       <source src="video.mp4" type="video/mp4">
     </video>
     <button class="closeVideo" id="closeVideo">X</button>
-    <button class="loopVideo" id="loopVideoBtn">🔁</button>
+    <button class="loopVideo" id="loopVideoBtn"><img src="bucle.png" alt="Bucle"></button>
   </div>
 
   <div class="dropdown">
@@ -373,7 +383,16 @@ rotRange.oninput=function(){
 
 /* SECRETO */
 cornerBL.onclick=function(){ if(secret===0)secret=1; else secret=0 }
-cornerTR.onclick=function(){ if(secret===1){ puzzlePage.style.display='none'; videoPage.style.display='flex'; loopBtn.style.display='block'; } secret=0 }
+cornerTR.onclick=function(){ 
+  if(secret===1){ 
+    puzzlePage.style.display='none'; 
+    videoPage.style.display='flex'; 
+    // Solo mostrar botones cuando se reproduce el video
+    loopBtn.style.display='none';
+    closeBtn.style.display='none';
+  } 
+  secret=0 
+}
 
 /* DESPLEGABLE */
 const toggle=document.getElementById("toggleInfo")
@@ -393,7 +412,7 @@ instaImg.onclick=function(){
   instaImg.style.display='none'
   video.style.display='block'
   closeBtn.style.display='block'
-  loopBtn.style.display='block'
+  loopBtn.style.display='flex' // Aparece solo ahora
   video.play()
 }
 closeBtn.onclick=function(){
@@ -402,13 +421,15 @@ closeBtn.onclick=function(){
   video.style.display='none'
   closeBtn.style.display='none'
   loopBtn.style.display='none'
+  loopBtn.classList.remove("active")
+  video.loop=false
   instaImg.style.display='block'
 }
 
 /* LOOP VIDEO */
 loopBtn.onclick=function(){
   video.loop = !video.loop
-  loopBtn.textContent = video.loop ? "🔁" : "🔁"
+  loopBtn.classList.toggle("active", video.loop)
 }
 </script>
 </body>
