@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Acceso privado</title>
 <style>
 :root{
@@ -10,11 +10,21 @@
   --panel:#1c1c1c;
   --text:#fff;
   --accent:#1e88e5;
-  --square-size:60px;
-  --corner-touch:120px; /* tamaño área de toque en móviles */
+  --square-size:60px;         /* tamaño visual del cuadrado negro de esquina */
+  --corner-hit-size:60px;     /* área de toque por defecto */
+  --corner-visual-size:60px;  /* tamaño visible del cuadrado dentro del área de toque */
   --gray-panel:#333;
 }
 
+/* Aumenta área táctil en pantallas pequeñas */
+@media (max-width:768px){
+  :root{
+    --corner-hit-size:110px;   /* área de toque mayor en móvil */
+    --corner-visual-size:60px; /* tamaño visible sigue igual */
+  }
+}
+
+/* RESET Y ESTILOS GENERALES */
 *{box-sizing:border-box;}
 html,body{
   margin:0;
@@ -22,6 +32,8 @@ html,body{
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
   overflow:hidden;
 }
 
@@ -83,43 +95,41 @@ button{
   height:100%;
   display:grid;
   z-index:0;
-  pointer-events:none; /* importante para que no bloquee las esquinas */
 }
 .square{width:100%;height:100%;}
 .black{background:black;}
 .white{background:white;}
 
-/* Esquinas */
+/* Esquinas: área de toque grande (transparent) + visual negro pequeño */
 .corner{
   position:absolute;
-  width:var(--square-size);
-  height:var(--square-size);
+  width:var(--corner-hit-size);
+  height:var(--corner-hit-size);
+  background:transparent; /* area de toque, invisible */
+  z-index:40; /* por encima de casi todo */
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+/* El cuadrado negro visible, centrado dentro del área táctil */
+.corner .visual{
+  position:absolute;
+  width:var(--corner-visual-size);
+  height:var(--corner-visual-size);
   background:black;
-  z-index:50; /* encima de todo */
-}
-.top-left{top:0;left:0;}
-.top-right{top:0;right:0;}
-.bottom-left{bottom:0;left:0;}
-.bottom-right{bottom:0;right:0;}
-
-/* Aumentar área de toque en móviles sin cambiar aspecto */
-.corner.bottom-left::before{
-  content:"";
-  position:absolute;
-  top:-30px;
-  left:-30px;
-  width:var(--corner-touch);
-  height:var(--corner-touch);
-}
-.corner.top-right::before{
-  content:"";
-  position:absolute;
-  top:-30px;
-  left:-30px;
-  width:var(--corner-touch);
-  height:var(--corner-touch);
+  top:0;
+  left:0;
 }
 
+/* Posicionamiento de las esquinas */
+.top-left{ top:0; left:0; }
+.top-right{ top:0; right:0; }
+.bottom-left{ bottom:0; left:0; }
+.bottom-right{ bottom:0; right:0; }
+
+/* Si quieres que el visual esté pegado exactamente a la esquina (no centrado),
+   puedes ajustar .corner .visual { top:0; left:0 } (ya lo puse así). */
+
+/* Paneles grises y elementos del puzzle */
 .images{
   display:flex;
   gap:20px;
@@ -176,17 +186,122 @@ h4.puzzleSubtitle{
   color:#ff6b6b;
 }
 
-/* MOVIL */
-@media (max-width:768px){
-  .corner{
-    width:80px;
-    height:80px;
-  }
-  .corner.bottom-left::before,
-  .corner.top-right::before{
-    width:150px;
-    height:150px;
-  }
+/* VIDEO TIPO INSTAGRAM (sin cambios importantes) */
+#videoPage{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  background:black;
+  overflow-y:auto;
+  gap:15px;
+  padding-top:20px;
+}
+#videoContainer{
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:80%;
+  max-width:400px;
+}
+#instaImg{
+  width:200px;
+  height:200px;
+  border-radius:50%;
+  border:5px solid #bc2a8d;
+  object-fit:cover;
+  cursor:pointer;
+}
+#mainVideo{
+  display:none;
+  width:100%;
+  border-radius:14px;
+  box-shadow:0 0 40px rgba(0,0,0,0.8);
+  background:black;
+}
+.closeVideo{
+  position:absolute;
+  top:5px;
+  right:5px;
+  background:#222;
+  color:#fff;
+  font-weight:bold;
+  font-size:16px;
+  border:none;
+  border-radius:50%;
+  width:25px;
+  height:25px;
+  cursor:pointer;
+  display:none;
+  line-height:25px;
+  text-align:center;
+}
+.loopVideo{
+  position:absolute;
+  top:5px;
+  left:5px;
+  background:#222;
+  border:none;
+  border-radius:50%;
+  width:30px;
+  height:30px;
+  cursor:pointer;
+  display:none;
+  padding:2px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  transition:all 0.2s ease;
+}
+.loopVideo img{
+  width:100%;
+  height:100%;
+  object-fit:contain;
+}
+.loopVideo.active{
+  background:#444;
+  box-shadow:0 0 8px #1e88e5;
+}
+
+/* Desplegable info */
+.dropdown{
+  width:90%;
+  max-width:400px;
+  background:#111;
+  border-radius:10px;
+  overflow:hidden;
+  margin-bottom:40px;
+}
+.dropdown button.toggle{
+  width:100%;
+  background:#222;
+  padding:12px;
+  font-size:16px;
+}
+.dropdown-content{
+  display:none;
+  padding:15px;
+  gap:10px;
+  flex-direction:column;
+}
+.field{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:#1b1b1b;
+  padding:10px;
+  border-radius:8px;
+  gap:10px;
+}
+.field span{
+  word-break:break-all;
+  font-size:14px;
+}
+.copy-btn{
+  background:#444;
+  padding:6px 10px;
+  font-size:13px;
 }
 </style>
 </head>
@@ -205,10 +320,12 @@ h4.puzzleSubtitle{
 <!-- PUZZLE -->
 <div id="puzzlePage" class="screen">
   <div id="bgGrid"></div>
-  <div class="corner top-left"></div>
-  <div class="corner top-right" id="cornerTR"></div>
-  <div class="corner bottom-left" id="cornerBL"></div>
-  <div class="corner bottom-right"></div>
+
+  <!-- Esquinas: area de toque + visual negra dentro -->
+  <div class="corner top-left" id="cornerTL"><div class="visual"></div></div>
+  <div class="corner top-right" id="cornerTR"><div class="visual"></div></div>
+  <div class="corner bottom-left" id="cornerBL"><div class="visual"></div></div>
+  <div class="corner bottom-right" id="cornerBR"><div class="visual"></div></div>
 
   <h3 class="puzzleTitle">Verificación adicional requerida</h3>
   <h4 class="puzzleSubtitle">Gira la figura para que coincida con la imagen de la derecha</h4>
@@ -229,6 +346,7 @@ h4.puzzleSubtitle{
       </svg>
     </div>
   </div>
+
   <div class="controls">
     <label>Ángulo: <span id="angleLabel">0°</span></label>
     <input id="rotRange" type="range" min="0" max="359" value="0">
@@ -238,80 +356,197 @@ h4.puzzleSubtitle{
   </div>
 </div>
 
+<!-- VIDEO -->
+<div id="videoPage" class="screen">
+  <div id="videoContainer">
+    <img id="instaImg" src="img.jpg" alt="Imagen Video">
+    <video id="mainVideo" controls playsinline>
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <button class="closeVideo" id="closeVideo">X</button>
+    <button class="loopVideo" id="loopVideoBtn"><img src="bucle.png" alt="Bucle"></button>
+  </div>
+
+  <div class="dropdown">
+    <button class="toggle" id="toggleInfo">Mostrar información</button>
+    <div class="dropdown-content" id="dropdownContent">
+      <div class="field">
+        <span id="emailText">recuanomuser@outlook.com</span>
+        <button class="copy-btn" onclick="copyText('emailText',this)">Copiar</button>
+      </div>
+      <div class="field">
+        <span id="userText">recuuseranom999</span>
+        <button class="copy-btn" onclick="copyText('userText',this)">Copiar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const loginBox=document.getElementById("loginBox")
-const puzzlePage=document.getElementById("puzzlePage")
-const videoPage=document.getElementById("videoPage")
-const user=document.getElementById("user")
-const pass=document.getElementById("pass")
-const btnEnter=document.getElementById("btnEnter")
-const rotRange=document.getElementById("rotRange")
-const leftSVG=document.getElementById("leftSVG")
-const angleLabel=document.getElementById("angleLabel")
-const cornerBL=document.getElementById("cornerBL")
-const cornerTR=document.getElementById("cornerTR")
-const bgGrid=document.getElementById("bgGrid")
-const btnResolve=document.getElementById("btnResolve")
-const errorText=document.getElementById("errorText")
-const attemptsCounter=document.getElementById("attemptsCounter")
+/* Elementos principales */
+const loginBox = document.getElementById('loginBox')
+const puzzlePage = document.getElementById('puzzlePage')
+const videoPage = document.getElementById('videoPage')
 
-let secret=0
-let attemptsLeft=3
+const user = document.getElementById('user')
+const pass = document.getElementById('pass')
+const btnEnter = document.getElementById('btnEnter')
 
+const rotRange = document.getElementById('rotRange')
+const leftSVG = document.getElementById('leftSVG')
+const angleLabel = document.getElementById('angleLabel')
+
+const cornerBL = document.getElementById('cornerBL')
+const cornerTR = document.getElementById('cornerTR')
+const cornerTL = document.getElementById('cornerTL')
+const cornerBR = document.getElementById('cornerBR')
+
+const bgGrid = document.getElementById('bgGrid')
+
+const video = document.getElementById('mainVideo')
+const instaImg = document.getElementById('instaImg')
+const closeBtn = document.getElementById('closeVideo')
+const loopBtn = document.getElementById('loopVideoBtn')
+
+const errorText = document.getElementById('errorText')
+const btnResolve = document.getElementById('btnResolve')
+const attemptsCounter = document.getElementById('attemptsCounter')
+
+/* Estado */
+let secret = 0
+let attemptsLeft = 3
+
+/* Genera la cuadrícula de fondo */
 function generateGrid(){
-  const size=60
-  const cols=Math.ceil(window.innerWidth/size)
-  const rows=Math.ceil(window.innerHeight/size)
-  bgGrid.style.gridTemplateColumns=`repeat(${cols},1fr)`
-  bgGrid.style.gridTemplateRows=`repeat(${rows},1fr)`
-  bgGrid.innerHTML=""
+  const size = 60
+  const cols = Math.ceil(window.innerWidth / size)
+  const rows = Math.ceil(window.innerHeight / size)
+  bgGrid.style.gridTemplateColumns = `repeat(${cols},1fr)`
+  bgGrid.style.gridTemplateRows = `repeat(${rows},1fr)`
+  bgGrid.innerHTML = ''
   for(let y=0;y<rows;y++){
     for(let x=0;x<cols;x++){
-      const div=document.createElement("div")
-      div.className = ((x+y)%2==0)?"square black":"square white"
+      const div = document.createElement('div')
+      div.className = ((x+y)%2==0) ? 'square black' : 'square white'
       bgGrid.appendChild(div)
     }
   }
 }
 generateGrid()
-window.addEventListener("resize",generateGrid)
+window.addEventListener('resize', generateGrid)
 
 /* LOGIN */
 function tryLogin(){
-  const u=user.value.trim()
-  const p=pass.value
-  user.value=""
-  pass.value=""
-  if(u==="00si" && p===""){
-    loginBox.style.display="none"
-    puzzlePage.style.display="flex"
+  const u = user.value.trim()
+  const p = pass.value
+  user.value = ''
+  pass.value = ''
+  if(u === '00si' && p === ''){
+    loginBox.style.display = 'none'
+    puzzlePage.style.display = 'flex'
+    // inicializa intentos por si vuelve
+    attemptsLeft = 3
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
+    errorText.textContent = ''
   }
 }
-btnEnter.onclick=tryLogin
-user.addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()})
-pass.addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()})
+btnEnter.onclick = tryLogin
+user.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
+pass.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
 
 /* ROTACION */
-rotRange.oninput=function(){
-  leftSVG.setAttribute("transform","rotate("+this.value+" 50 50)")
-  angleLabel.textContent=this.value+"°"
+rotRange.oninput = function(){
+  leftSVG.setAttribute('transform','rotate(' + this.value + ' 50 50)')
+  angleLabel.textContent = this.value + '°'
 }
 
-/* BOTON RESOLVER */
-btnResolve.onclick=function(){
-  if(attemptsLeft>0){
-    errorText.textContent="Ángulo Incorrecto"
+/* BOTON RESOLVER (contador y recarga) */
+btnResolve.onclick = function(){
+  if(attemptsLeft > 0){
+    errorText.textContent = 'Ángulo Incorrecto'
     attemptsLeft--
-    attemptsCounter.textContent = "Intentos restantes: " + attemptsLeft
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
   }
-  if(attemptsLeft<=0){
-    location.reload()
+  if(attemptsLeft <= 0){
+    // mostrar mensaje breve y recargar para asegurar que el usuario lo vea
+    setTimeout(()=> location.reload(), 600)
   }
 }
 
-/* SECRETO */
-cornerBL.onclick=function(){ if(secret===0)secret=1; else secret=0 }
-cornerTR.onclick=function(){ if(secret===1){ alert("Se mostraría el video"); } secret=0 }
+/* SECUENCIA ESQUINAS: BL -> TR (funciona con click y touchstart) */
+function handleCornerBL(){
+  if(secret === 0) secret = 1
+  else secret = 0
+}
+function handleCornerTR(){
+  if(secret === 1){
+    puzzlePage.style.display = 'none'
+    videoPage.style.display = 'flex'
+    // botones ocultos hasta que el vídeo se abra (se muestran cuando pulse la imagen)
+    loopBtn.style.display = 'none'
+    closeBtn.style.display = 'none'
+  }
+  secret = 0
+}
+
+/* Asociar tanto click como touchstart para mejor respuesta táctil */
+cornerBL.addEventListener('click', handleCornerBL)
+cornerBL.addEventListener('touchstart', function(e){ e.preventDefault(); handleCornerBL(); }, {passive:false})
+
+cornerTR.addEventListener('click', handleCornerTR)
+cornerTR.addEventListener('touchstart', function(e){ e.preventDefault(); handleCornerTR(); }, {passive:false})
+
+/* También añadimos listeners a otras esquinas si quieres (opcional) */
+cornerTL.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
+cornerBR.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
+
+/* DESPLEGABLE INFO */
+const toggle = document.getElementById('toggleInfo')
+const content = document.getElementById('dropdownContent')
+toggle && (toggle.onclick = function(){
+  content.style.display = (content.style.display === 'flex') ? 'none' : 'flex'
+})
+
+/* COPIAR */
+function copyText(id,btn){
+  const text = document.getElementById(id).innerText
+  navigator.clipboard.writeText(text)
+  btn.innerText = 'Copiado'
+  setTimeout(()=> btn.innerText = 'Copiar', 1800)
+}
+
+/* INSTAGRAM VIDEO: abrir vídeo */
+instaImg && (instaImg.onclick = function(){
+  instaImg.style.display = 'none'
+  video.style.display = 'block'
+  closeBtn.style.display = 'block'
+  loopBtn.style.display = 'flex'
+  // reiniciar loop visual y activar reproducción
+  video.loop = video.loop || false
+  video.play().catch(()=>{/* autoplay bloqueo posible, usuario puede pulsar play */})
+})
+
+/* Cerrar vídeo */
+closeBtn && (closeBtn.onclick = function(){
+  video.pause()
+  video.currentTime = 0
+  video.style.display = 'none'
+  closeBtn.style.display = 'none'
+  loopBtn.style.display = 'none'
+  loopBtn.classList.remove('active')
+  video.loop = false
+  instaImg.style.display = 'block'
+})
+
+/* LOOP boton */
+loopBtn && (loopBtn.onclick = function(e){
+  video.loop = !video.loop
+  loopBtn.classList.toggle('active', video.loop)
+})
+
+/* Compatibilidad: si el usuario usa touch y no dispara click por algún motivo,
+   los touchstart en las esquinas aseguran que la acción se capture. */
+
 </script>
 </body>
 </html>
