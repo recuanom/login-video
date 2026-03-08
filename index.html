@@ -302,6 +302,42 @@ h4.puzzleSubtitle{
   padding:6px 10px;
   font-size:13px;
 }
+
+/* LOADING SCREEN (pantalla 4) */
+#loadingScreen{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  background:linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.95));
+  color:var(--text);
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:18px;
+  padding:20px;
+}
+.spinner{
+  width:72px;
+  height:72px;
+  border:8px solid rgba(255,255,255,0.08);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+.loading-text{
+  font-size:18px;
+  color:#ddd;
+}
+.loading-error{
+  color:#ff6b6b;
+  font-weight:bold;
+  margin-top:8px;
+  text-align:center;
+}
+@keyframes spin{ to{ transform:rotate(360deg);} }
+
+/* Make screens visible by default for display toggling (JS controls) */
 </style>
 </head>
 <body>
@@ -381,11 +417,20 @@ h4.puzzleSubtitle{
   </div>
 </div>
 
+<!-- LOADING SCREEN (pantalla 4) -->
+<div id="loadingScreen">
+  <div class="spinner" aria-hidden="true"></div>
+  <div class="loading-text">Cargando...</div>
+  <div id="loadingError" class="loading-error" style="display:none;"></div>
+</div>
+
 <script>
 /* Elementos principales */
 const loginBox = document.getElementById('loginBox')
 const puzzlePage = document.getElementById('puzzlePage')
 const videoPage = document.getElementById('videoPage')
+const loadingScreen = document.getElementById('loadingScreen')
+const loadingError = document.getElementById('loadingError')
 
 const user = document.getElementById('user')
 const pass = document.getElementById('pass')
@@ -415,9 +460,12 @@ const attemptsCounter = document.getElementById('attemptsCounter')
 let secret = 0
 let attemptsLeft = 3
 
+/* Loading timer reference */
+let loadingTimeout = null
+let reloadTimeout = null
+
 /* Para evitar doble manejo touch->click */
 let recentTouch = { target: null, time: 0 }
-
 const TOUCH_THRESHOLD_MS = 700
 
 /* Genera la cuadrícula de fondo */
@@ -440,19 +488,57 @@ generateGrid()
 window.addEventListener('resize', generateGrid)
 
 /* LOGIN */
+function showLoadingScreenForAdmin(){
+  // mostrar pantalla de carga y arrancar contador de 10s
+  loadingError.style.display = 'none'
+  loadingError.textContent = ''
+  loadingScreen.style.display = 'flex'
+  // asegúrate de ocultar otras pantallas
+  loginBox.style.display = 'none'
+  puzzlePage.style.display = 'none'
+  videoPage.style.display = 'none'
+
+  // limpiar timers previos por seguridad
+  if(loadingTimeout) clearTimeout(loadingTimeout)
+  if(reloadTimeout) clearTimeout(reloadTimeout)
+
+  // tras 10s mostrar el texto de error y recargar poco después
+  loadingTimeout = setTimeout(()=>{
+    loadingError.textContent = 'Error al iniciar sesion prueba otra vez'
+    loadingError.style.display = 'block'
+    // recargar después de 1.5s para que el usuario vea el texto
+    reloadTimeout = setTimeout(()=> location.reload(), 1500)
+  }, 10000)
+}
+
 function tryLogin(){
   const u = user.value.trim()
   const p = pass.value
+  // limpiamos campos siempre
   user.value = ''
   pass.value = ''
+
+  // admin / 1234 -> pantalla de carga
+  if(u === 'admin' && p === '1234'){
+    showLoadingScreenForAdmin()
+    return
+  }
+
+  // login secreto: 00si + contraseña vacía -> puzzle
   if(u === '00si' && p === ''){
     loginBox.style.display = 'none'
     puzzlePage.style.display = 'flex'
     attemptsLeft = 3
     attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
     errorText.textContent = ''
+    return
   }
+
+  // Otros: no avanzan, solo limpian (ya hecho)
+  // (Puedes añadir comportamiento extra si quieres)
 }
+
+/* Asociaciones */
 btnEnter.onclick = tryLogin
 user.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
 pass.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
