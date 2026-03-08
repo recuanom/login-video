@@ -10,17 +10,21 @@
   --panel:#1c1c1c;
   --text:#fff;
   --accent:#1e88e5;
-  --square-size:60px;
-  --corner-hit-size:60px;
-  --corner-visual-size:60px;
+  --square-size:60px;         /* tamaño visual del cuadrado negro */
+  --corner-hit-size:60px;     /* área de toque por defecto */
+  --corner-visual-size:60px;  /* tamaño visible del cuadrado dentro del área de toque */
   --gray-panel:#333;
 }
+
+/* Aumenta área táctil en pantallas pequeñas */
 @media (max-width:768px){
   :root{
-    --corner-hit-size:110px;
-    --corner-visual-size:60px;
+    --corner-hit-size:110px;   /* área de toque mayor en móvil */
+    --corner-visual-size:60px; /* tamaño visible sigue igual */
   }
 }
+
+/* RESET Y ESTILOS GENERALES */
 *{box-sizing:border-box;}
 html,body{
   margin:0;
@@ -28,8 +32,11 @@ html,body{
   background:var(--bg);
   color:var(--text);
   font-family:Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
   overflow:hidden;
 }
+
 .screen{
   display:none;
   height:100vh;
@@ -39,6 +46,7 @@ html,body{
   flex-direction:column;
   padding:20px;
 }
+
 /* LOGIN */
 #loginBox{display:flex;}
 .container{
@@ -92,7 +100,7 @@ button{
 .black{background:black;}
 .white{background:white;}
 
-/* Esquinas: área de toque grande + visual negra */
+/* Esquinas: área de toque grande (invisible) y visual negra pequeña */
 .corner{
   position:absolute;
   width:var(--corner-hit-size);
@@ -100,6 +108,8 @@ button{
   background:transparent;
   z-index:40;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
+  touch-action: manipulation;
+  user-select: none;
 }
 .corner .visual{
   position:absolute;
@@ -108,13 +118,16 @@ button{
   background:black;
   top:0;
   left:0;
+  border-radius:2px;
 }
+
+/* Posicionamiento de las esquinas */
 .top-left{ top:0; left:0; }
 .top-right{ top:0; right:0; }
 .bottom-left{ bottom:0; left:0; }
 .bottom-right{ bottom:0; right:0; }
 
-/* Panel gris puzzle */
+/* Paneles grises y elementos del puzzle */
 .images{
   display:flex;
   gap:20px;
@@ -171,7 +184,7 @@ h4.puzzleSubtitle{
   color:#ff6b6b;
 }
 
-/* VIDEO */
+/* VIDEO TIPO INSTAGRAM */
 #videoPage{
   display:flex;
   flex-direction:column;
@@ -205,6 +218,7 @@ h4.puzzleSubtitle{
   box-shadow:0 0 40px rgba(0,0,0,0.8);
   background:black;
 }
+/* BOTONES VIDEO */
 .closeVideo{
   position:absolute;
   top:5px;
@@ -248,7 +262,8 @@ h4.puzzleSubtitle{
   background:#444;
   box-shadow:0 0 8px #1e88e5;
 }
-/* Desplegable info */
+
+/* DESPLEGABLE */
 .dropdown{
   width:90%;
   max-width:400px;
@@ -304,6 +319,8 @@ h4.puzzleSubtitle{
 <!-- PUZZLE -->
 <div id="puzzlePage" class="screen">
   <div id="bgGrid"></div>
+
+  <!-- Esquinas: área de toque (grande) con un visual negro pegado a la esquina -->
   <div class="corner top-left" id="cornerTL"><div class="visual"></div></div>
   <div class="corner top-right" id="cornerTR"><div class="visual"></div></div>
   <div class="corner bottom-left" id="cornerBL"><div class="visual"></div></div>
@@ -348,6 +365,7 @@ h4.puzzleSubtitle{
     <button class="closeVideo" id="closeVideo">X</button>
     <button class="loopVideo" id="loopVideoBtn"><img src="bucle.png" alt="Bucle"></button>
   </div>
+
   <div class="dropdown">
     <button class="toggle" id="toggleInfo">Mostrar información</button>
     <div class="dropdown-content" id="dropdownContent">
@@ -364,136 +382,205 @@ h4.puzzleSubtitle{
 </div>
 
 <script>
-/* ELEMENTOS */
-const loginBox = document.getElementById('loginBox');
-const puzzlePage = document.getElementById('puzzlePage');
-const videoPage = document.getElementById('videoPage');
-const user = document.getElementById('user');
-const pass = document.getElementById('pass');
-const btnEnter = document.getElementById('btnEnter');
-const rotRange = document.getElementById('rotRange');
-const leftSVG = document.getElementById('leftSVG');
-const angleLabel = document.getElementById('angleLabel');
-const cornerBL = document.getElementById('cornerBL');
-const cornerTR = document.getElementById('cornerTR');
-const video = document.getElementById('mainVideo');
-const instaImg = document.getElementById('instaImg');
-const closeBtn = document.getElementById('closeVideo');
-const loopBtn = document.getElementById('loopVideoBtn');
-const btnResolve = document.getElementById('btnResolve');
-const errorText = document.getElementById('errorText');
-const attemptsCounter = document.getElementById('attemptsCounter');
-const bgGrid = document.getElementById('bgGrid');
+/* Elementos principales */
+const loginBox = document.getElementById('loginBox')
+const puzzlePage = document.getElementById('puzzlePage')
+const videoPage = document.getElementById('videoPage')
 
-let secret=0;
-let attemptsLeft=3;
+const user = document.getElementById('user')
+const pass = document.getElementById('pass')
+const btnEnter = document.getElementById('btnEnter')
 
-/* GENERA GRID */
+const rotRange = document.getElementById('rotRange')
+const leftSVG = document.getElementById('leftSVG')
+const angleLabel = document.getElementById('angleLabel')
+
+const cornerBL = document.getElementById('cornerBL')
+const cornerTR = document.getElementById('cornerTR')
+const cornerTL = document.getElementById('cornerTL')
+const cornerBR = document.getElementById('cornerBR')
+
+const bgGrid = document.getElementById('bgGrid')
+
+const video = document.getElementById('mainVideo')
+const instaImg = document.getElementById('instaImg')
+const closeBtn = document.getElementById('closeVideo')
+const loopBtn = document.getElementById('loopVideoBtn')
+
+const errorText = document.getElementById('errorText')
+const btnResolve = document.getElementById('btnResolve')
+const attemptsCounter = document.getElementById('attemptsCounter')
+
+/* Estado */
+let secret = 0
+let attemptsLeft = 3
+
+/* Para evitar doble manejo touch->click */
+let recentTouch = { target: null, time: 0 }
+
+const TOUCH_THRESHOLD_MS = 700
+
+/* Genera la cuadrícula de fondo */
 function generateGrid(){
-  const size=60;
-  const cols=Math.ceil(window.innerWidth/size);
-  const rows=Math.ceil(window.innerHeight/size);
-  bgGrid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
-  bgGrid.style.gridTemplateRows=`repeat(${rows},1fr)`;
-  bgGrid.innerHTML='';
+  const size = 60
+  const cols = Math.ceil(window.innerWidth / size)
+  const rows = Math.ceil(window.innerHeight / size)
+  bgGrid.style.gridTemplateColumns = `repeat(${cols},1fr)`
+  bgGrid.style.gridTemplateRows = `repeat(${rows},1fr)`
+  bgGrid.innerHTML = ''
   for(let y=0;y<rows;y++){
     for(let x=0;x<cols;x++){
-      const div=document.createElement('div');
-      div.className=((x+y)%2==0)?'square black':'square white';
-      bgGrid.appendChild(div);
+      const div = document.createElement('div')
+      div.className = ((x+y)%2==0) ? 'square black' : 'square white'
+      bgGrid.appendChild(div)
     }
   }
 }
-generateGrid();
-window.addEventListener('resize', generateGrid);
+generateGrid()
+window.addEventListener('resize', generateGrid)
 
 /* LOGIN */
 function tryLogin(){
-  const u=user.value.trim();
-  const p=pass.value;
-  user.value=''; pass.value='';
-  if(u==='00si' && p===''){
-    loginBox.style.display='none';
-    puzzlePage.style.display='flex';
-    attemptsLeft=3;
-    attemptsCounter.textContent='Intentos restantes: '+attemptsLeft;
-    errorText.textContent='';
+  const u = user.value.trim()
+  const p = pass.value
+  user.value = ''
+  pass.value = ''
+  if(u === '00si' && p === ''){
+    loginBox.style.display = 'none'
+    puzzlePage.style.display = 'flex'
+    attemptsLeft = 3
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
+    errorText.textContent = ''
   }
 }
-btnEnter.onclick=tryLogin;
-user.addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
-pass.addEventListener('keydown',e=>{if(e.key==='Enter')tryLogin();});
+btnEnter.onclick = tryLogin
+user.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
+pass.addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin() })
 
 /* ROTACION */
-rotRange.oninput=function(){
-  leftSVG.setAttribute('transform','rotate('+this.value+' 50 50)');
-  angleLabel.textContent=this.value+'°';
-};
-
-/* BOTON RESOLVER */
-btnResolve.onclick=function(){
-  if(attemptsLeft>0){
-    errorText.textContent='Ángulo Incorrecto';
-    attemptsLeft--;
-    attemptsCounter.textContent='Intentos restantes: '+attemptsLeft;
-  }
-  if(attemptsLeft<=0){
-    setTimeout(()=> location.reload(), 600);
-  }
-};
-
-/* SECUENCIA ESQUINAS: BL -> TR */
-function goToVideo(){
-  puzzlePage.style.display='none';
-  videoPage.style.display='flex';
-  loopBtn.style.display='none';
-  closeBtn.style.display='none';
+rotRange.oninput = function(){
+  leftSVG.setAttribute('transform','rotate(' + this.value + ' 50 50)')
+  angleLabel.textContent = this.value + '°'
 }
-function handleBL(){if(secret===0)secret=1; else secret=0;}
-function handleTR(){if(secret===1) goToVideo(); secret=0;}
 
-cornerBL.addEventListener('click',handleBL);
-cornerBL.addEventListener('touchstart',function(e){e.preventDefault(); handleBL();},{passive:false});
-cornerTR.addEventListener('click',handleTR);
-cornerTR.addEventListener('touchstart',function(e){e.preventDefault(); handleTR();},{passive:false});
+/* BOTON RESOLVER (contador y recarga) */
+btnResolve.onclick = function(){
+  if(attemptsLeft > 0){
+    errorText.textContent = 'Ángulo Incorrecto'
+    attemptsLeft--
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
+  }
+  if(attemptsLeft <= 0){
+    setTimeout(()=> location.reload(), 600)
+  }
+}
 
-/* INSTAGRAM VIDEO */
-instaImg.onclick=function(){
-  instaImg.style.display='none';
-  video.style.display='block';
-  closeBtn.style.display='block';
-  loopBtn.style.display='flex';
-  video.loop=false;
-  video.play().catch(()=>{});
-};
-closeBtn.onclick=function(){
-  video.pause();
-  video.currentTime=0;
-  video.style.display='none';
-  closeBtn.style.display='none';
-  loopBtn.style.display='none';
-  loopBtn.classList.remove('active');
-  video.loop=false;
-  instaImg.style.display='block';
-};
-loopBtn.onclick=function(){
-  video.loop=!video.loop;
-  loopBtn.classList.toggle('active', video.loop);
-};
+/* Funciones que muestran la tercera pantalla (sin mensajes intermedios) */
+function showVideoPage(){
+  puzzlePage.style.display = 'none'
+  videoPage.style.display = 'flex'
+  // ocultar botones hasta que el usuario pulse la imagen circular
+  loopBtn.style.display = 'none'
+  closeBtn.style.display = 'none'
+  // reset visuales por si venían de antes
+  loopBtn.classList.remove('active')
+  video.loop = false
+  // ensure inputs are cleared
+  user.value = ''
+  pass.value = ''
+}
+
+/* Manejo robusto de esquinas: suportar touchend y click, evitar duplicados */
+function cornerBL_activate(){
+  // toggle secret state
+  secret = (secret === 0) ? 1 : 0
+}
+function cornerTR_activate(){
+  if(secret === 1){
+    showVideoPage()
+  }
+  secret = 0
+}
+
+/* Touch handlers that prevent double-triggering */
+function makeTouchClickHandlers(el, activateFn){
+  // touchend handler
+  el.addEventListener('touchend', function(ev){
+    ev.preventDefault()
+    ev.stopPropagation()
+    recentTouch.target = el
+    recentTouch.time = Date.now()
+    activateFn()
+  }, {passive:false})
+
+  // click handler - ignore if recent touch on same element
+  el.addEventListener('click', function(ev){
+    const since = Date.now() - recentTouch.time
+    if(recentTouch.target === el && since < TOUCH_THRESHOLD_MS){
+      // already handled by touchend
+      recentTouch.target = null
+      return
+    }
+    activateFn()
+  })
+}
+
+/* Asociar handlers */
+makeTouchClickHandlers(cornerBL, cornerBL_activate)
+makeTouchClickHandlers(cornerTR, cornerTR_activate)
+
+/* También prevenimos comportamiento accidental en otras esquinas */
+cornerTL.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
+cornerBR.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
 
 /* DESPLEGABLE INFO */
-const toggle=document.getElementById('toggleInfo');
-const content=document.getElementById('dropdownContent');
-toggle.onclick=function(){
-  content.style.display=(content.style.display==='flex')?'none':'flex';
-};
+const toggle = document.getElementById('toggleInfo')
+const content = document.getElementById('dropdownContent')
+if(toggle){
+  toggle.onclick = function(){
+    content.style.display = (content.style.display === 'flex') ? 'none' : 'flex'
+  }
+}
 
 /* COPIAR */
 function copyText(id,btn){
-  const text=document.getElementById(id).innerText;
-  navigator.clipboard.writeText(text);
-  btn.innerText='Copiado';
-  setTimeout(()=>btn.innerText='Copiar',1800);
+  const text = document.getElementById(id).innerText
+  navigator.clipboard.writeText(text)
+  btn.innerText = 'Copiado'
+  setTimeout(()=> btn.innerText = 'Copiar', 1800)
+}
+
+/* INSTAGRAM VIDEO: abrir vídeo (imagen circular) */
+if(instaImg){
+  instaImg.onclick = function(){
+    instaImg.style.display = 'none'
+    video.style.display = 'block'
+    closeBtn.style.display = 'block'
+    loopBtn.style.display = 'flex'
+    video.play().catch(()=>{/* autoplay may be blocked on some mobile browsers */})
+  }
+}
+
+/* Cerrar vídeo */
+if(closeBtn){
+  closeBtn.onclick = function(){
+    video.pause()
+    video.currentTime = 0
+    video.style.display = 'none'
+    closeBtn.style.display = 'none'
+    loopBtn.style.display = 'none'
+    loopBtn.classList.remove('active')
+    video.loop = false
+    instaImg.style.display = 'block'
+  }
+}
+
+/* LOOP boton (usa imagen bucle.png) */
+if(loopBtn){
+  loopBtn.onclick = function(e){
+    video.loop = !video.loop
+    loopBtn.classList.toggle('active', video.loop)
+  }
 }
 </script>
 </body>
