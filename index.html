@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Acceso privado</title>
+<style>
+:root{
+  --bg:#0f0f0f;
+  --panel:#1c1c1c;
+  --text:#fff;
+  --accent:#1e88e5;
+  --square-size:60px;
+  --corner-hit-size:60px;
+  --corner-visual-size:60px;
+  --gray-panel:#333;
+  --video-max-width:420px;
+}
+@media (max-width:768px){
+  :root{
+    --corner-hit-size:110px;
+    --corner-visual-size:60px;
+    --video-max-width:360px;
+  }
+}
+*{box-sizing:border-box;}
+html,body{
+  margin:0;
+  height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow:hidden;
+}
+.screen{
+  display:none;
+  height:100vh;
+  width:100%;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  padding:20px;
+}
+/* LOGIN */
+#loginBox{display:flex;}
+.container{
+  background:var(--panel);
+  padding:26px;
+  border-radius:12px;
+  box-shadow:0 6px 30px rgba(0,0,0,0.6);
+  max-width:420px;
+  width:90%;
+  text-align:center;
+}
+input{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
+}
+button{
+  padding:10px 14px;
+  border:none;
+  border-radius:8px;
+  background:var(--accent);
+  color:#fff;
+  font-size:15px;
+  cursor:pointer;
+}
+
+/* PUZZLE */
+#puzzlePage{ position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:10px;}
+#bgGrid{ position:absolute; top:0; left:0; width:100%; height:100%; display:grid; z-index:0;}
+.square{width:100%;height:100%;}
+.black{background:black;}
+.white{background:white;}
+.corner{ position:absolute; width:var(--corner-hit-size); height:var(--corner-hit-size); background:transparent; z-index:40; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; user-select: none;}
+.corner .visual{ position:absolute; width:var(--corner-visual-size); height:var(--corner-visual-size); background:black; top:0; left:0; border-radius:2px;}
+.top-left{ top:0; left:0; }
+.top-right{ top:0; right:0; }
+.bottom-left{ bottom:0; left:0; }
+.bottom-right{ bottom:0; right:0; }
+.images{ display:flex; gap:20px; margin-top:10px; z-index:2; background:var(--gray-panel); padding:10px; border-radius:12px;}
+.img-box{ width:180px; height:180px; background:#ddd; border-radius:8px; display:flex; justify-content:center; align-items:center;}
+#rightImg svg{transform:rotate(30deg);}
+#leftSVG{transition:transform .1s linear;}
+.controls{ margin-top:10px; z-index:2; text-align:center; max-width:400px; width:90%; background:var(--gray-panel); padding:10px; border-radius:12px;}
+h3.puzzleTitle{ z-index:2; background:var(--gray-panel); padding:10px 15px; border-radius:12px; margin-bottom:8px;}
+h4.puzzleSubtitle{ z-index:2; background:var(--gray-panel); padding:8px 12px; border-radius:10px; margin-bottom:10px; font-weight:normal;}
+#errorText{ color:red; margin-top:10px; font-weight:bold;}
+#attemptsCounter{ margin-top:8px; font-weight:bold; color:#ff6b6b;}
+
+/* VIDEO (stories style) */
+#videoPage{ display:flex; flex-direction:column; justify-content:flex-start; align-items:center; background:black; overflow-y:auto; gap:15px; padding-top:20px;}
+#videoContainer{ position:relative; display:flex; justify-content:center; align-items:center; width:90%; max-width:var(--video-max-width); margin:0 auto;}
+#instaImg{ width:200px; height:200px; border-radius:50%; border:5px solid #bc2a8d; object-fit:cover; cursor:pointer;}
+#mainVideo{ display:none; width:100%; border-radius:14px; box-shadow:0 0 40px rgba(0,0,0,0.8); background:black; max-height:80vh;}
+.closeVideo{ position:absolute; top:8px; right:8px; background:#22222200; color:#fff; font-weight:bold; font-size:14px; border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; display:none; line-height:28px; text-align:center; z-index:60;}
+.loopVideo{ position:absolute; top:8px; left:8px; background:#22222200; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; display:none; padding:2px; display:flex; justify-content:center; align-items:center; transition:all 0.2s ease; z-index:60;}
+.loopVideo img{ width:100%; height:100%; object-fit:contain;}
+.loopVideo.active{ background:#444; box-shadow:0 0 8px #1e88e5;}
+#videoLink{ position:absolute; top:10px; left:50%; transform:translateX(-50%); color:#fff; text-decoration:none; font-weight:bold; font-size:15px; background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; display:none; z-index:65;}
+#videoLink:hover{ background:rgba(30,136,229,0.8); }
+
+/* navigation arrows */
+.navBtn{ position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border-radius:50%; background:rgba(0,0,0,0.35); color:white; border:none; display:none; align-items:center; justify-content:center; font-size:22px; cursor:pointer; z-index:58;}
+#prevBtn{ left:-52px; }
+#nextBtn{ right:-52px; }
+@media (max-width:600px){
+  #prevBtn{ left:6px; }
+  #nextBtn{ right:6px; }
+  .navBtn{ width:48px; height:48px; font-size:24px; }
+  #videoLink{ font-size:14px; top:8px; }
+  .closeVideo{ width:26px; height:26px; top:6px; right:6px; }
+  .loopVideo{ width:30px; height:30px; top:6px; left:6px; }
+}
+
+/* DESPLEGABLE */
+.dropdown{ width:90%; max-width:400px; background:#111; border-radius:10px; overflow:hidden; margin-bottom:40px;}
+.dropdown button.toggle{ width:100%; background:#222; padding:12px; font-size:16px;}
+.dropdown-content{ display:none; padding:15px; gap:10px; flex-direction:column;}
+.field{ display:flex; justify-content:space-between; align-items:center; background:#1b1b1b; padding:10px; border-radius:8px; gap:10px;}
+.field span{ word-break:break-all; font-size:14px;}
+.copy-btn{ background:#444; padding:6px 10px; font-size:13px;}
+
+/* LOADING SCREEN */
+#loadingScreen{ display:none; position:fixed; inset:0; z-index:1000; background:linear-gradient(0deg, rgba(0,0,0,0.85), rgba(0,0,0,0.95)); color:var(--text); align-items:center; justify-content:center; flex-direction:column; gap:18px; padding:20px;}
+.spinner{ width:72px; height:72px; border:8px solid rgba(255,255,255,0.08); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite;}
+.loading-text{ font-size:18px; color:#ddd; }
+.loading-error{ color:#ff6b6b; font-weight:bold; margin-top:8px; text-align:center; }
+@keyframes spin{ to{ transform:rotate(360deg);} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox" class="screen">
+  <div class="container">
+    <h2>Acceso privado</h2>
+    <input id="user" placeholder="Usuario" autocomplete="off">
+    <input id="pass" type="password" placeholder="Contraseña" autocomplete="new-password">
+    <button id="btnEnter">Entrar</button>
+  </div>
+</div>
+
+<!-- PUZZLE -->
+<div id="puzzlePage" class="screen">
+  <div id="bgGrid"></div>
+  <div class="corner top-left" id="cornerTL"><div class="visual"></div></div>
+  <div class="corner top-right" id="cornerTR"><div class="visual"></div></div>
+  <div class="corner bottom-left" id="cornerBL"><div class="visual"></div></div>
+  <div class="corner bottom-right" id="cornerBR"><div class="visual"></div></div>
+
+  <h3 class="puzzleTitle">Verificación adicional requerida</h3>
+  <h4 class="puzzleSubtitle">Gira la figura para que coincida con la imagen de la derecha</h4>
+
+  <div class="images">
+    <div class="img-box">
+      <svg viewBox="0 0 100 100">
+        <g id="leftSVG">
+          <rect x="20" y="20" width="60" height="60" fill="#1e88e5"/>
+          <circle cx="50" cy="50" r="14" fill="#fff"/>
+        </g>
+      </svg>
+    </div>
+    <div id="rightImg" class="img-box">
+      <svg viewBox="0 0 100 100">
+        <rect x="20" y="20" width="60" height="60" fill="#1e88e5"/>
+        <circle cx="50" cy="50" r="14" fill="#fff"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="controls">
+    <label>Ángulo: <span id="angleLabel">0°</span></label>
+    <input id="rotRange" type="range" min="0" max="359" value="0">
+    <button id="btnResolve">Resolver</button>
+    <div id="errorText"></div>
+    <div id="attemptsCounter">Intentos restantes: 3</div>
+  </div>
+</div>
+
+<!-- VIDEO -->
+<div id="videoPage" class="screen">
+  <div id="videoContainer">
+    <img id="instaImg" src="img.jpg" alt="Imagen Video">
+    <video id="mainVideo" controls playsinline preload="metadata"></video>
+
+    <!-- side nav buttons -->
+    <button id="prevBtn" class="navBtn" aria-label="Anterior">&lsaquo;</button>
+    <button id="nextBtn" class="navBtn" aria-label="Siguiente">&rsaquo;</button>
+
+    <!-- top controls -->
+    <button class="closeVideo" id="closeVideo">×</button>
+    <button class="loopVideo" id="loopVideoBtn" title="Bucle"><img src="bucle.png" alt="Bucle"></button>
+    <a href="https://www.instagram.com/luciianavarroo._/" target="_blank" id="videoLink">@luciianavarroo._</a>
+  </div>
+
+  <div class="dropdown">
+    <button class="toggle" id="toggleInfo">Mostrar información</button>
+    <div class="dropdown-content" id="dropdownContent">
+      <div class="field">
+        <span id="emailText">recuanomuser@outlook.com</span>
+        <button class="copy-btn" onclick="copyText('emailText',this)">Copiar</button>
+      </div>
+      <div class="field">
+        <span id="userText">recuuseranom999</span>
+        <button class="copy-btn" onclick="copyText('userText',this)">Copiar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="spinner" aria-hidden="true"></div>
+  <div class="loading-text">Cargando...</div>
+  <div id="loadingError" class="loading-error" style="display:none;"></div>
+</div>
+
+<script>
+/* Elementos */
+const loginBox = document.getElementById('loginBox')
+const puzzlePage = document.getElementById('puzzlePage')
+const videoPage = document.getElementById('videoPage')
+const loadingScreen = document.getElementById('loadingScreen')
+const loadingError = document.getElementById('loadingError')
+
+const user = document.getElementById('user')
+const pass = document.getElementById('pass')
+const btnEnter = document.getElementById('btnEnter')
+
+const rotRange = document.getElementById('rotRange')
+const leftSVG = document.getElementById('leftSVG')
+const angleLabel = document.getElementById('angleLabel')
+
+const cornerBL = document.getElementById('cornerBL')
+const cornerTR = document.getElementById('cornerTR')
+
+const bgGrid = document.getElementById('bgGrid')
+
+const video = document.getElementById('mainVideo')
+const instaImg = document.getElementById('instaImg')
+const closeBtn = document.getElementById('closeVideo')
+const loopBtn = document.getElementById('loopVideoBtn')
+const videoLink = document.getElementById('videoLink')
+const prevBtn = document.getElementById('prevBtn')
+const nextBtn = document.getElementById('nextBtn')
+
+const errorText = document.getElementById('errorText')
+const btnResolve = document.getElementById('btnResolve')
+const attemptsCounter = document.getElementById('attemptsCounter')
+
+/* Toggle info button & content (we'll hide it while video plays) */
+const toggleBtn = document.getElementById('toggleInfo')
+const content = document.getElementById('dropdownContent')
+
+/* Estado */
+let secret = 0
+let attemptsLeft = 3
+let recentTouch = { target: null, time: 0 }
+const TOUCH_THRESHOLD_MS = 700
+
+/* Playlist / indices */
+const TOTAL_VIDEOS = 33
+let currentIndex = 0 // 0-based (video1.mp4 -> index 0)
+
+function videoPathForIndex(i){
+  const n = Math.max(0, Math.min(TOTAL_VIDEOS-1, i))
+  return `vid/video${n+1}.mp4`
+}
+
+/* Genera cuadrícula de fondo */
+function generateGrid(){
+  const size = 60
+  const cols = Math.ceil(window.innerWidth / size)
+  const rows = Math.ceil(window.innerHeight / size)
+  const grid = document.getElementById('bgGrid')
+  grid.style.gridTemplateColumns = `repeat(${cols},1fr)`
+  grid.style.gridTemplateRows = `repeat(${rows},1fr)`
+  grid.innerHTML = ''
+  for(let y=0;y<rows;y++){
+    for(let x=0;x<cols;x++){
+      const div = document.createElement('div')
+      div.className = ((x+y)%2==0) ? 'square black' : 'square white'
+      grid.appendChild(div)
+    }
+  }
+}
+generateGrid()
+window.addEventListener('resize', generateGrid)
+
+/* LOGIN y pantalla de admin loading */
+function showLoadingScreenForAdmin(){
+  loadingError.style.display = 'none'
+  loadingError.textContent = ''
+  loadingScreen.style.display = 'flex'
+  loginBox.style.display = 'none'
+  puzzlePage.style.display = 'none'
+  videoPage.style.display = 'none'
+  setTimeout(()=>{
+    loadingError.textContent = 'Error al iniciar sesion prueba otra vez'
+    loadingError.style.display = 'block'
+    setTimeout(()=> location.reload(), 1500)
+  },10000)
+}
+
+function tryLogin(){
+  const u = user.value.trim()
+  const p = pass.value
+  user.value = ''
+  pass.value = ''
+  if(u === 'admin' && p === '1234'){
+    showLoadingScreenForAdmin()
+    return
+  }
+  if(u === '00si' && p === ''){
+    loginBox.style.display = 'none'
+    puzzlePage.style.display = 'flex'
+    attemptsLeft = 3
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
+    errorText.textContent = ''
+    return
+  }
+}
+btnEnter.onclick = tryLogin
+user.addEventListener('keydown', e => { if(e.key==='Enter') tryLogin() })
+pass.addEventListener('keydown', e => { if(e.key==='Enter') tryLogin() })
+
+/* ROTACION */
+rotRange.oninput = function(){
+  leftSVG.setAttribute('transform','rotate(' + this.value + ' 50 50)')
+  angleLabel.textContent = this.value + '°'
+}
+
+/* RESOLVER */
+btnResolve.onclick = function(){
+  if(attemptsLeft>0){
+    errorText.textContent = 'Ángulo Incorrecto'
+    attemptsLeft--
+    attemptsCounter.textContent = 'Intentos restantes: ' + attemptsLeft
+  }
+  if(attemptsLeft<=0){
+    setTimeout(()=> location.reload(),600)
+  }
+}
+
+/* Mostrar pantalla de vídeo (sin reproducir) */
+function showVideoPage(initializeIndex = 0){
+  puzzlePage.style.display = 'none'
+  videoPage.style.display = 'flex'
+  // hide video UI — do not load or autoplay
+  video.style.display = 'none'
+  closeBtn.style.display = 'none'
+  loopBtn.style.display = 'none'
+  videoLink.style.display = 'none'
+  prevBtn.style.display = 'none'
+  nextBtn.style.display = 'none'
+  loopBtn.classList.remove('active')
+  video.loop = false
+  // show circular image so the user can press it to start playback
+  instaImg.style.display = 'block'
+  currentIndex = initializeIndex
+  // remove any existing <source> so load happens when user presses image
+  while(video.firstChild) video.removeChild(video.firstChild)
+  // ensure toggle visible (since not playing yet)
+  if(toggleBtn) toggleBtn.style.display = 'block'
+  if(content) content.style.display = 'none'
+}
+
+/* carga y reproduce vídeo actual, ajusta botones prev/next */
+function loadAndPlayCurrent(){
+  const src = videoPathForIndex(currentIndex)
+  // set or replace source
+  while(video.firstChild) video.removeChild(video.firstChild)
+  const s = document.createElement('source')
+  s.src = src
+  s.type = 'video/mp4'
+  video.appendChild(s)
+  video.load()
+  // hide toggle info while watching video
+  if(toggleBtn) toggleBtn.style.display = 'none'
+  if(content) content.style.display = 'none'
+  // show UI controls when video is playing
+  video.style.display = 'block'
+  closeBtn.style.display = 'block'
+  loopBtn.style.display = 'flex'
+  videoLink.style.display = 'block'
+  // show nav buttons if applicable
+  prevBtn.style.display = (currentIndex > 0) ? 'flex' : 'none'
+  nextBtn.style.display = (currentIndex < TOTAL_VIDEOS - 1) ? 'flex' : 'none'
+  // play (may be blocked on some browsers until user interaction)
+  video.play().catch(()=>{})
+}
+
+/* corner handlers (puzzle) */
+function cornerBL_activate(){ secret = (secret===0)?1:0 }
+function cornerTR_activate(){ if(secret===1) showVideoPage(0); secret=0 }
+
+/* touch/click helper to avoid double events */
+function makeTouchClickHandlers(el, fn){
+  el.addEventListener('touchend', function(ev){ ev.preventDefault(); ev.stopPropagation(); fn(); }, {passive:false})
+  el.addEventListener('click', function(ev){ fn(); })
+}
+makeTouchClickHandlers(cornerBL, cornerBL_activate)
+makeTouchClickHandlers(cornerTR, cornerTR_activate)
+
+/* INSTAGRAM style image click: now loads & plays current video (only when user presses the circular image) */
+if(instaImg){
+  instaImg.onclick = function(){
+    // hide the circular image and start the current video
+    instaImg.style.display = 'none'
+    loadAndPlayCurrent()
+  }
+}
+
+/* CLOSE video */
+if(closeBtn){
+  closeBtn.onclick = function(){
+    video.pause()
+    video.currentTime = 0
+    video.style.display = 'none'
+    closeBtn.style.display = 'none'
+    loopBtn.style.display = 'none'
+    videoLink.style.display = 'none'
+    prevBtn.style.display = 'none'
+    nextBtn.style.display = 'none'
+    loopBtn.classList.remove('active')
+    video.loop = false
+    // show circular image again
+    instaImg.style.display = 'block'
+    // remove source so browser can free memory
+    while(video.firstChild) video.removeChild(video.firstChild)
+    // show toggle info button again
+    if(toggleBtn) toggleBtn.style.display = 'block'
+  }
+}
+
+/* LOOP toggle */
+if(loopBtn){
+  loopBtn.onclick = function(e){
+    video.loop = !video.loop
+    loopBtn.classList.toggle('active', video.loop)
+  }
+}
+
+/* NAV buttons */
+prevBtn.addEventListener('click', function(){
+  if(currentIndex > 0){
+    currentIndex--
+    loadAndPlayCurrent()
+  }
+})
+nextBtn.addEventListener('click', function(){
+  if(currentIndex < TOTAL_VIDEOS - 1){
+    currentIndex++
+    loadAndPlayCurrent()
+  }
+})
+
+/* swipe support on video container for mobile */
+let touchStartX = 0
+let touchEndX = 0
+const threshold = 40
+const container = document.getElementById('videoContainer')
+if(container){
+  container.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX }, {passive:true})
+  container.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].clientX
+    const dx = touchEndX - touchStartX
+    if(Math.abs(dx) > threshold){
+      if(dx < 0 && currentIndex < TOTAL_VIDEOS - 1){ currentIndex++; loadAndPlayCurrent() }
+      else if(dx > 0 && currentIndex > 0){ currentIndex--; loadAndPlayCurrent() }
+    }
+  }, {passive:true})
+}
+
+/* DESPLEGABLE INFO */
+if(toggleBtn){
+  toggleBtn.onclick = function(){
+    content.style.display = (content.style.display==='flex') ? 'none' : 'flex'
+  }
+}
+
+/* COPIAR */
+function copyText(id,btn){
+  const text = document.getElementById(id).innerText
+  navigator.clipboard.writeText(text)
+  btn.innerText='Copiado'
+  setTimeout(()=>btn.innerText='Copiar',1800)
+}
+
+/* prevent accidental touchstart default on corner visuals */
+const cornerTL = document.getElementById('cornerTL')
+const cornerBR = document.getElementById('cornerBR')
+if(cornerTL) cornerTL.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
+if(cornerBR) cornerBR.addEventListener('touchstart', e=>e.preventDefault(), {passive:true})
+</script>
+</body>
+</html>
