@@ -11,7 +11,7 @@
   --text:#fff;
   --accent:#1e88e5;
   --square-size:60px;
-  --corner-size:60px;
+  --corner-touch:120px; /* tamaño área de toque en móviles */
   --gray-panel:#333;
 }
 
@@ -83,21 +83,43 @@ button{
   height:100%;
   display:grid;
   z-index:0;
+  pointer-events:none; /* importante para que no bloquee las esquinas */
 }
 .square{width:100%;height:100%;}
 .black{background:black;}
 .white{background:white;}
+
+/* Esquinas */
 .corner{
   position:absolute;
-  width:var(--corner-size);
-  height:var(--corner-size);
+  width:var(--square-size);
+  height:var(--square-size);
   background:black;
-  z-index:20;
+  z-index:50; /* encima de todo */
 }
 .top-left{top:0;left:0;}
 .top-right{top:0;right:0;}
 .bottom-left{bottom:0;left:0;}
 .bottom-right{bottom:0;right:0;}
+
+/* Aumentar área de toque en móviles sin cambiar aspecto */
+.corner.bottom-left::before{
+  content:"";
+  position:absolute;
+  top:-30px;
+  left:-30px;
+  width:var(--corner-touch);
+  height:var(--corner-touch);
+}
+.corner.top-right::before{
+  content:"";
+  position:absolute;
+  top:-30px;
+  left:-30px;
+  width:var(--corner-touch);
+  height:var(--corner-touch);
+}
+
 .images{
   display:flex;
   gap:20px;
@@ -154,132 +176,14 @@ h4.puzzleSubtitle{
   color:#ff6b6b;
 }
 
-/* VIDEO TIPO INSTAGRAM */
-#videoPage{
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-start;
-  align-items:center;
-  background:black;
-  overflow-y:auto;
-  gap:15px;
-  padding-top:20px;
-}
-#videoContainer{
-  position:relative;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:80%;
-  max-width:400px;
-}
-#instaImg{
-  width:200px;
-  height:200px;
-  border-radius:50%;
-  border:5px solid #bc2a8d;
-  object-fit:cover;
-  cursor:pointer;
-}
-#mainVideo{
-  display:none;
-  width:100%;
-  border-radius:14px;
-  box-shadow:0 0 40px rgba(0,0,0,0.8);
-  background:black;
-}
-/* BOTONES VIDEO */
-.closeVideo{
-  position:absolute;
-  top:5px;
-  right:5px;
-  background:#222;
-  color:#fff;
-  font-weight:bold;
-  font-size:16px;
-  border:none;
-  border-radius:50%;
-  width:25px;
-  height:25px;
-  cursor:pointer;
-  display:none;
-  line-height:25px;
-  text-align:center;
-}
-.loopVideo{
-  position:absolute;
-  top:5px;
-  left:5px;
-  background:#222;
-  border:none;
-  border-radius:50%;
-  width:30px;
-  height:30px;
-  cursor:pointer;
-  display:none;
-  padding:2px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  transition:all 0.2s ease;
-}
-.loopVideo img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-}
-.loopVideo.active{
-  background:#444;
-  box-shadow:0 0 8px #1e88e5;
-}
-
-/* DESPLEGABLE */
-.dropdown{
-  width:90%;
-  max-width:400px;
-  background:#111;
-  border-radius:10px;
-  overflow:hidden;
-  margin-bottom:40px;
-}
-.dropdown button.toggle{
-  width:100%;
-  background:#222;
-  padding:12px;
-  font-size:16px;
-}
-.dropdown-content{
-  display:none;
-  padding:15px;
-  gap:10px;
-  flex-direction:column;
-}
-.field{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  background:#1b1b1b;
-  padding:10px;
-  border-radius:8px;
-  gap:10px;
-}
-.field span{
-  word-break:break-all;
-  font-size:14px;
-}
-.copy-btn{
-  background:#444;
-  padding:6px 10px;
-  font-size:13px;
-}
-
-/* ADAPTACIONES MOVIL */
+/* MOVIL */
 @media (max-width:768px){
   .corner{
-    width:90px;
-    height:90px;
+    width:80px;
+    height:80px;
   }
-  #instaImg{
+  .corner.bottom-left::before,
+  .corner.top-right::before{
     width:150px;
     height:150px;
   }
@@ -334,62 +238,26 @@ h4.puzzleSubtitle{
   </div>
 </div>
 
-<!-- VIDEO TIPO INSTAGRAM -->
-<div id="videoPage" class="screen">
-  <div id="videoContainer">
-    <img id="instaImg" src="img.jpg" alt="Imagen Video">
-    <video id="mainVideo" controls playsinline>
-      <source src="video.mp4" type="video/mp4">
-    </video>
-    <button class="closeVideo" id="closeVideo">X</button>
-    <button class="loopVideo" id="loopVideoBtn"><img src="bucle.png" alt="Bucle"></button>
-  </div>
-
-  <div class="dropdown">
-    <button class="toggle" id="toggleInfo">Mostrar información</button>
-    <div class="dropdown-content" id="dropdownContent">
-      <div class="field">
-        <span id="emailText">recuanomuser@outlook.com</span>
-        <button class="copy-btn" onclick="copyText('emailText',this)">Copiar</button>
-      </div>
-      <div class="field">
-        <span id="userText">recuuseranom999</span>
-        <button class="copy-btn" onclick="copyText('userText',this)">Copiar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 const loginBox=document.getElementById("loginBox")
 const puzzlePage=document.getElementById("puzzlePage")
 const videoPage=document.getElementById("videoPage")
-
 const user=document.getElementById("user")
 const pass=document.getElementById("pass")
 const btnEnter=document.getElementById("btnEnter")
-
 const rotRange=document.getElementById("rotRange")
 const leftSVG=document.getElementById("leftSVG")
 const angleLabel=document.getElementById("angleLabel")
-
 const cornerBL=document.getElementById("cornerBL")
 const cornerTR=document.getElementById("cornerTR")
-
 const bgGrid=document.getElementById("bgGrid")
-
-const video=document.getElementById("mainVideo")
-const instaImg=document.getElementById("instaImg")
-const closeBtn=document.getElementById("closeVideo")
-const loopBtn=document.getElementById("loopVideoBtn")
-const errorText=document.getElementById("errorText")
 const btnResolve=document.getElementById("btnResolve")
+const errorText=document.getElementById("errorText")
 const attemptsCounter=document.getElementById("attemptsCounter")
 
 let secret=0
 let attemptsLeft=3
 
-/* FONDO */
 function generateGrid(){
   const size=60
   const cols=Math.ceil(window.innerWidth/size)
@@ -443,53 +311,7 @@ btnResolve.onclick=function(){
 
 /* SECRETO */
 cornerBL.onclick=function(){ if(secret===0)secret=1; else secret=0 }
-cornerTR.onclick=function(){ 
-  if(secret===1){ 
-    puzzlePage.style.display='none'; 
-    videoPage.style.display='flex'; 
-    loopBtn.style.display='none';
-    closeBtn.style.display='none';
-  } 
-  secret=0 
-}
-
-/* DESPLEGABLE */
-const toggle=document.getElementById("toggleInfo")
-const content=document.getElementById("dropdownContent")
-toggle.onclick=function(){ content.style.display = content.style.display==="flex" ? "none" : "flex" }
-
-/* COPIAR */
-function copyText(id,btn){
-  const text=document.getElementById(id).innerText
-  navigator.clipboard.writeText(text)
-  btn.innerText="Copiado"
-  setTimeout(()=>{btn.innerText="Copiar"},2000)
-}
-
-/* INSTAGRAM VIDEO */
-instaImg.onclick=function(){
-  instaImg.style.display='none'
-  video.style.display='block'
-  closeBtn.style.display='block'
-  loopBtn.style.display='flex' 
-  video.play()
-}
-closeBtn.onclick=function(){
-  video.pause()
-  video.currentTime=0
-  video.style.display='none'
-  closeBtn.style.display='none'
-  loopBtn.style.display='none'
-  loopBtn.classList.remove("active")
-  video.loop=false
-  instaImg.style.display='block'
-}
-
-/* LOOP VIDEO */
-loopBtn.onclick=function(){
-  video.loop = !video.loop
-  loopBtn.classList.toggle("active", video.loop)
-}
+cornerTR.onclick=function(){ if(secret===1){ alert("Se mostraría el video"); } secret=0 }
 </script>
 </body>
 </html>
