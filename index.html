@@ -69,13 +69,6 @@ font-size:15px;
 cursor:pointer;
 }
 
-.error-msg{
-color:#ff6b6b;
-font-size:14px;
-margin-top:2px;
-display:none;
-}
-
 /* PUZZLE */
 
 #puzzlePage{
@@ -154,33 +147,39 @@ max-width:400px;
 width:90%;
 }
 
-.controls input{width:100%;}
-
 /* VIDEO */
 
 #videoPage{
 display:flex;
 flex-direction:column;
-justify-content:center;
+justify-content:flex-start;
 align-items:center;
 background:black;
 gap:20px;
+overflow-y:auto;
 }
 
 .video-wrapper{
 display:flex;
 justify-content:center;
 align-items:center;
-height:70vh;
 width:100%;
+margin-top:20px;
 }
 
 video{
-height:70vh;
+max-height:60vh;
 width:auto;
 border-radius:14px;
 box-shadow:0 0 40px rgba(0,0,0,0.8);
 background:black;
+}
+
+/* BOTON LOOP */
+
+.loop-btn{
+background:#333;
+margin-top:5px;
 }
 
 /* DESPLEGABLE */
@@ -191,6 +190,7 @@ max-width:400px;
 background:#111;
 border-radius:10px;
 overflow:hidden;
+margin-bottom:40px;
 }
 
 .dropdown button.toggle{
@@ -241,11 +241,8 @@ font-size:13px;
 
 <h2>Acceso privado</h2>
 
-<input id="user" placeholder="Usuario" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-<div id="userError" class="error-msg">El usuario no puede estar vacío</div>
-
-<input id="pass" type="password" placeholder="Contraseña" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
-<div id="passError" class="error-msg">La contraseña no puede estar vacía</div>
+<input id="user" placeholder="Usuario" autocomplete="off">
+<input id="pass" type="password" placeholder="Contraseña" autocomplete="new-password">
 
 <button id="btnEnter">Entrar</button>
 
@@ -293,8 +290,6 @@ font-size:13px;
 
 <input id="rotRange" type="range" min="0" max="359" value="0">
 
-<button id="btnCheck">Comprobar</button>
-
 </div>
 
 </div>
@@ -306,11 +301,13 @@ font-size:13px;
 
 <div class="video-wrapper">
 
-<video id="mainVideo" controls controlsList="nodownload">
+<video id="mainVideo" controls playsinline controlsList="nodownload">
 <source src="video.mp4" type="video/mp4">
 </video>
 
 </div>
+
+<button class="loop-btn" onclick="toggleLoop()">Activar bucle</button>
 
 <div class="dropdown">
 
@@ -343,7 +340,6 @@ const videoPage=document.getElementById("videoPage")
 
 const user=document.getElementById("user")
 const pass=document.getElementById("pass")
-const btnEnter=document.getElementById("btnEnter")
 
 const rotRange=document.getElementById("rotRange")
 const leftSVG=document.getElementById("leftSVG")
@@ -353,21 +349,9 @@ const cornerBL=document.getElementById("cornerBL")
 const cornerTR=document.getElementById("cornerTR")
 
 const bgGrid=document.getElementById("bgGrid")
+const video=document.getElementById("mainVideo")
 
 let secret=0
-
-function clearLoginFields(){
-user.value=""
-pass.value=""
-}
-
-window.onload=function(){
-clearLoginFields()
-}
-
-window.onpageshow=function(){
-clearLoginFields()
-}
 
 /* FONDO */
 
@@ -398,7 +382,6 @@ bgGrid.appendChild(div)
 }
 
 generateGrid()
-window.addEventListener("resize",generateGrid)
 
 /* LOGIN */
 
@@ -407,7 +390,8 @@ function tryLogin(){
 const u=user.value.trim()
 const p=pass.value
 
-clearLoginFields()
+user.value=""
+pass.value=""
 
 if(u==="00si" && p===""){
 
@@ -418,10 +402,7 @@ puzzlePage.style.display="flex"
 
 }
 
-btnEnter.onclick=tryLogin
-
-user.addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()})
-pass.addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin()})
+document.getElementById("btnEnter").onclick=tryLogin
 
 /* ROTACION */
 
@@ -461,11 +442,7 @@ const content=document.getElementById("dropdownContent")
 
 toggle.onclick=function(){
 
-if(content.style.display==="flex"){
-content.style.display="none"
-}else{
-content.style.display="flex"
-}
+content.style.display = content.style.display==="flex" ? "none" : "flex"
 
 }
 
@@ -482,6 +459,24 @@ btn.innerText="Copiado"
 setTimeout(()=>{
 btn.innerText="Copiar"
 },2000)
+
+}
+
+/* LOOP VIDEO */
+
+function toggleLoop(){
+
+if(video.loop){
+
+video.loop=false
+event.target.innerText="Activar bucle"
+
+}else{
+
+video.loop=true
+event.target.innerText="Quitar bucle"
+
+}
 
 }
 
