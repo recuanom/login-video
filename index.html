@@ -319,12 +319,12 @@ font-size:13px;
 <div class="dropdown-content" id="dropdownContent">
 
 <div class="field">
-<span id="emailText">privateanomuser@outlook.com</span>
+<span id="emailText">recuanomuser@outlook.com</span>
 <button class="copy-btn" onclick="copyText('emailText',this)">Copiar</button>
 </div>
 
 <div class="field">
-<span id="userText">useranom999</span>
+<span id="userText">recuuseranom999</span>
 <button class="copy-btn" onclick="copyText('userText',this)">Copiar</button>
 </div>
 
@@ -356,20 +356,14 @@ const bgGrid=document.getElementById("bgGrid")
 
 let secret=0
 
-/* LIMPIAR CAMPOS */
-
 function clearLoginFields(){
 user.value=""
 pass.value=""
 }
 
-/* LIMPIAR AL CARGAR */
-
 window.onload=function(){
 clearLoginFields()
 }
-
-/* LIMPIAR SI VUELVEN ATRAS */
 
 window.onpageshow=function(){
 clearLoginFields()
